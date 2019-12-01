@@ -1,0 +1,79 @@
+一些事项
+crf代码分析：
+https://www.hankcs.com/ml/crf-code-analysis.html
+
+locate 为例子
+
+训练
+crf_learn.exe -f 4 -p 8 -c 4 ./locate/template ./locate/data/train.txt ./locate/model
+测试
+./crf_test.exe  -m ./locate/model ./locate/data/test.txt > ./locate/data/test.rst
+
+
+可选参数
+-f, –freq=INT使用属性的出现次数不少于INT(默认为1)
+-m, –maxiter=INT设置INT为LBFGS的最大迭代次数 (默认10k)
+-c, –cost=FLOAT      设置FLOAT为代价参数，过大会过度拟合 (默认1.0)
+-e, –eta=FLOAT设置终止标准FLOAT(默认0.0001)
+-C, –convert将文本模式转为二进制模式
+-t, –textmodel为调试建立文本模型文件
+-a, –algorithm=(CRF|MIRA)
+选择训练算法，默认为CRF-L2
+-p, –thread=INT线程数(默认1)，利用多个CPU减少训练时间
+-H, –shrinking-size=INT
+设置INT为最适宜的跌代变量次数 (默认20)
+-v, –version显示版本号并退出
+-h, –help显示帮助并退出
+
+
+输出的信息
+iter：迭代次数。当迭代次数达到maxiter时，迭代终止
+terr：标记错误率
+serr：句子错误率
+obj：当前对象的值。当这个值收敛到一个确定值的时候，训练完成
+diff：与上一个对象值之间的相对差。当此值低于eta时，训练完成
+
+模板的讲解
+详细讲解地址：https://taku910.github.io/crfpp/#templ
+
+CRF两种特征模板
+Unigram和Bigram是特征模板的类型。
+U00:%x[-2,0]中，
+U表示类型为Unigram，
+00表示特征的id，%x[-2,0]表示x（在这里为字）的位置，
+-2表示x的行偏移，0表示x的列偏移。
+
+模板：
+# Unigram
+U00:%x[-2,0]
+U01:%x[-1,0]
+U02:%x[0,0]
+U03:%x[1,0]
+U04:%x[2,0]
+U05:%x[-2,0]/%x[-1,0]/%x[0,0]
+U06:%x[-1,0]/%x[0,0]/%x[1,0]
+U07:%x[0,0]/%x[1,0]/%x[2,0]
+U08:%x[-1,0]/%x[0,0]
+U09:%x[0,0]/%x[1,0]
+
+# Bigram
+B
+
+模板的意思：
+当前字为"充" 完整的句子：迈向充满希望的
+U00:%x[-2,0]  ==>迈
+U01:%x[-1,0]  ==>向
+U02:%x[0,0]   ==>充
+U03:%x[1,0]   ==>满
+U04:%x[2,0]   ==>希
+U05:%x[-2,0]/%x[-1,0]/%x[0,0]  ==>迈/向/充
+U06:%x[-1,0]/%x[0,0]/%x[1,0]   ==>向/充/满
+U07:%x[0,0]/%x[1,0]/%x[2,0]    ==>充/满/希
+U08:%x[-1,0]/%x[0,0]           ==>向/充
+U09:%x[0,0]/%x[1,0]            ==>充/满
+
+首先,%x[#,#]中的两个"#"分别表示相对的行偏移与列偏移
+
+seg:日文分词  第一列是待分词的日文字,第二列是词性，第三列是改词的标签
+JapaneseNE：日文实体识别
+chunking:
